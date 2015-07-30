@@ -1,4 +1,4 @@
-from flask import Flask , render_template , request , flash , url_for , redirect
+from flask import Flask , render_template , request , flash , url_for , redirect , jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Restaurant, MenuItem
@@ -18,6 +18,28 @@ restaurants = [{'name': 'The CRUDdy Crab', 'id': '1'}, {'name':'Blue Burgers', '
 #Fake Menu Items
 items = [ {'name':'Cheese Pizza', 'description':'made with fresh cheese', 'price':'$5.99','course' :'Entree', 'id':'1'}, {'name':'Chocolate Cake','description':'made with Dutch Chocolate', 'price':'$3.99', 'course':'Dessert','id':'2'},{'name':'Caesar Salad', 'description':'with fresh organic vegetables','price':'$5.99', 'course':'Entree','id':'3'},{'name':'Iced Tea', 'description':'with lemon','price':'$.99', 'course':'Beverage','id':'4'},{'name':'Spinach Dip', 'description':'creamy dip with fresh spinach','price':'$1.99', 'course':'Appetizer','id':'5'} ]
 item =  {'name':'Cheese Pizza','description':'made with fresh cheese','price':'$5.99','course' :'Entree'}
+
+
+# API Endpoint - Return all retaurants 
+@app.route('/restaurants/JSON')
+def restaurantsJSON():
+	restaurants = session.query(Restaurant).all()
+	return jsonify(Restaurant=[r.serialize for r in restaurants])
+
+
+# API Endpoint - Return all menu items for a selected restaurant 
+@app.route('/restaurants/<int:restaurant_id>/menu/JSON')
+def restaurantMenuJSON(restaurant_id):
+	restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
+	items = session.query(MenuItem).filter_by(restaurant_id=restaurant_id).all()
+	return jsonify(MenuItems=[i.serialize for i in items])
+
+
+# API Endpoint - Return a menu item for a selected restaurant 
+@app.route('/restaurants/<int:restaurant_id>/menu/<int:menu_id>/JSON')
+def menuItemJSON(restaurant_id, menu_id):
+	menuItem = session.query(MenuItem).filter_by(id=menu_id).one()
+	return jsonify(MenuItem=menuItem.serialize)
 
 
 # List all restaurants
